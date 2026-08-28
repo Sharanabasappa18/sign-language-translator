@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Sign Language Translator</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🤟</div>
+        <div>
+          <h1>Sign Language Translator</h1>
+          <p>Real-time AI gesture recognition</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <label class="select-wrap">
+          <span>Language</span>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="kn">Kannada</option>
+            <option value="hi">Hindi</option>
+            <option value="ta">Tamil</option>
+          </select>
+        </label>
+        <label class="toggle-wrap">
+          <input type="checkbox" id="ttsToggle" checked />
+          <span>Speak aloud</span>
+        </label>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel camera-panel">
+        <div class="panel-head">
+          <h2>Live Camera</h2>
+          <span id="cameraStatus" class="badge badge-off">Stopped</span>
+        </div>
+        <div class="camera-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay" hidden></canvas>
+          <img id="annotated" alt="Annotated hand landmarks" hidden />
+          <div id="cameraPlaceholder" class="placeholder">
+            <p>Camera feed will appear here</p>
+            <p class="muted">Click <strong>Start Camera</strong> to begin</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="startBtn" class="btn btn-primary">Start Camera</button>
+          <button id="stopBtn" class="btn btn-secondary" disabled>Stop Camera</button>
+        </div>
+      </section>
+
+      <section class="panel results-panel">
+        <div class="panel-head">
+          <h2>Recognition</h2>
+          <span id="modelBadge" class="badge badge-muted">Checking model…</span>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="stat-label">Detected gesture</span>
+            <span id="gestureLabel" class="stat-value">—</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Confidence</span>
+            <span id="confidenceLabel" class="stat-value">—</span>
+          </div>
+        </div>
+
+        <div class="preview-box">
+          <span class="stat-label">Live preview</span>
+          <p id="previewText" class="preview-text">Hold a sign steady to translate</p>
+        </div>
+
+        <div class="output-box">
+          <div class="output-head">
+            <span class="stat-label">Translated text</span>
+            <button id="clearBtn" class="btn btn-ghost" type="button">Clear Text</button>
+          </div>
+          <p id="translatedText" class="translated-text"></p>
+        </div>
+
+        <button id="speakBtn" class="btn btn-accent" type="button" disabled>
+          🔊 Speak Sentence
+        </button>
+      </section>
+    </main>
+
+    <section class="panel tips-panel">
+      <h2>Supported demo gestures</h2>
+      <ul id="gestureList" class="gesture-list"></ul>
+      <p class="tip">
+        Hold each sign still for about one second. Casual movement is ignored until a gesture stays stable.
+      </p>
+    </section>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
