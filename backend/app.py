@@ -19,6 +19,8 @@ from backend.services.gesture_service import GestureRecognitionService  # noqa: 
 from utils.language_maps import GESTURE_TRANSLATIONS, list_gestures  # noqa: E402
 from utils.tts_utils import get_browser_tts_code, synthesize_speech  # noqa: E402
 
+from ml_model.classifier import GestureClassifier  # noqa: E402
+
 app = FastAPI(title="AI Sign Language Translator", version="1.0.0")
 
 app.add_middleware(
@@ -29,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-gesture_service = GestureRecognitionService()
+shared_classifier = GestureClassifier(MODEL_PATH)
 
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
@@ -43,7 +45,7 @@ async def index():
 async def health():
     return {
         "status": "ok",
-        "model_loaded": MODEL_PATH.exists(),
+        "model_loaded": MODEL_PATH.exists() and shared_classifier.is_trained,
         "languages": LANGUAGES,
     }
 
@@ -81,6 +83,7 @@ async def text_to_speech(payload: dict):
 @app.websocket("/ws/recognize")
 async def recognize_ws(websocket: WebSocket):
     await websocket.accept()
+    service = GestureRecognitionService(classifier=shared_classifier)
     language = "en"
 
     try:
@@ -93,12 +96,12 @@ async def recognize_ws(websocket: WebSocket):
                 continue
 
             if msg_type == "reset":
-                gesture_service.reset()
+                service.reset()
                 await websocket.send_json({"type": "reset", "translated_text": ""})
                 continue
 
             if msg_type == "clear":
-                gesture_service.clear_text()
+                service.clear_text()
                 await websocket.send_json(
                     {"type": "clear", "translated_text": ""}
                 )
@@ -106,16 +109,18 @@ async def recognize_ws(websocket: WebSocket):
 
             if msg_type == "frame":
                 frame_b64 = message.get("data", "")
-                frame = gesture_service.decode_frame(frame_b64)
+                frame = service.decode_frame(frame_b64)
                 if frame is None:
                     await websocket.send_json({"type": "error", "message": "Bad frame"})
                     continue
 
-                result = gesture_service.process_frame(frame, language)
+                result = service.process_frame(frame, language)
                 await websocket.send_json({"type": "result", **result})
 
     except WebSocketDisconnect:
         pass
+    finally:
+        service.close()
 
 
 if __name__ == "__main__":
