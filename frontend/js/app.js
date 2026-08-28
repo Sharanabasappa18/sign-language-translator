@@ -183,29 +183,47 @@ function stopCamera() {
   stopBtn.disabled = true;
 }
 
+function speakWithBrowser(text) {
+  if (!("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  const langCode = TTS_CODES[languageSelect.value] || "en-US";
+  utterance.lang = langCode;
+  utterance.rate = 0.95;
+
+  const voices = window.speechSynthesis.getVoices();
+  const voice = voices.find(
+    (v) => v.lang === langCode || v.lang.startsWith(langCode.slice(0, 2))
+  );
+  if (voice) {
+    utterance.voice = voice;
+  }
+  window.speechSynthesis.speak(utterance);
+}
+
 function speak(text) {
   if (!text) return;
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = TTS_CODES[languageSelect.value] || "en-US";
-    utterance.rate = 0.95;
-    window.speechSynthesis.speak(utterance);
-    return;
-  }
-
+  const lang = languageSelect.value;
   fetch("/api/tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, language: languageSelect.value }),
+    body: JSON.stringify({ text, language: lang }),
   })
-    .then((r) => r.blob())
-    .then((blob) => {
-      const audio = new Audio(URL.createObjectURL(blob));
-      audio.play();
+    .then((r) => {
+      const contentType = r.headers.get("content-type") || "";
+      if (r.ok && contentType.includes("audio")) {
+        return r.blob().then((blob) => {
+          const audio = new Audio(URL.createObjectURL(blob));
+          audio.play().catch(() => speakWithBrowser(text));
+        });
+      } else {
+        speakWithBrowser(text);
+      }
     })
-    .catch(console.error);
+    .catch(() => {
+      speakWithBrowser(text);
+    });
 }
 
 startBtn.addEventListener("click", startCamera);
