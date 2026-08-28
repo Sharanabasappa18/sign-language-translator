@@ -22,15 +22,18 @@ from utils.language_maps import translate_gesture
 
 
 class GestureRecognitionService:
-    def __init__(self) -> None:
+    def __init__(self, classifier: Optional[GestureClassifier] = None) -> None:
         self._detector = HandDetector(max_hands=MAX_HANDS)
-        self._classifier = GestureClassifier(MODEL_PATH)
+        self._classifier = classifier if classifier is not None else GestureClassifier(MODEL_PATH)
         self._stabilizer = GestureStabilizer(
             stable_frames=STABLE_FRAMES_REQUIRED,
             min_confidence=MIN_CONFIDENCE,
             cooldown_frames=GESTURE_COOLDOWN_FRAMES,
         )
         self.sentence_buffer: list[str] = []
+
+    def close(self) -> None:
+        self._detector.close()
 
     def reset(self) -> None:
         self._stabilizer.reset()
