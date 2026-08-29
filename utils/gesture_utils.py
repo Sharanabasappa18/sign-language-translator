@@ -51,22 +51,20 @@ def rule_based_gesture(landmarks) -> Optional[str]:
 
     if all(extended):
         return "hello"
+    if (thumb and index and pinky and not middle and not ring) or (index and pinky and not middle and not ring and not thumb):
+        return "love"
     if thumb and not any([index, middle, ring, pinky]):
         return "yes"
-    if not thumb and not any([index, middle, ring, pinky]):
-        return "no"
+    if not thumb and index and middle and ring and pinky:
+        return "thank_you"
+    if index and middle and ring and not pinky and not thumb:
+        return "three"
     if index and middle and not ring and not pinky and not thumb:
         return "two"
     if index and not middle and not ring and not pinky and not thumb:
         return "one"
-    if index and middle and ring and not pinky and not thumb:
-        return "three"
-    if index and pinky and not middle and not ring:
-        return "love"
     if not any(extended):
-        return "please"
-    if index and middle and ring and pinky and not thumb:
-        return "thank_you"
+        return "no"
     return None
 
 
