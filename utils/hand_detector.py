@@ -61,7 +61,7 @@ class HandDetector:
             drawing_utils.draw_landmarks(
                 annotated,
                 hand_landmarks,
-                hand_landmarker.HandLandmarker.HAND_CONNECTIONS,
+                hand_landmarker.HandLandmarksConnections.HAND_CONNECTIONS,
                 drawing_utils.DrawingSpec(color=(0, 255, 0), thickness=2, circle_radius=2),
                 drawing_utils.DrawingSpec(color=(255, 255, 255), thickness=2),
             )
